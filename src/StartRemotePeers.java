@@ -25,6 +25,8 @@ public class StartRemotePeers {
         String st;
         int i1;
         peerInfoVector = new Vector<RemotePeerInfo>();
+        System.out.println(System.getProperty("user.dir"));
+
         try {
             BufferedReader in = new BufferedReader(new FileReader("project_config_file_small/PeerInfo.cfg"));
             while((st = in.readLine()) != null) {
@@ -45,6 +47,8 @@ public class StartRemotePeers {
         catch (Exception ex) {
             System.out.println(ex.toString());
         }
+
+        System.out.println("Hello");
     }
 
     /**
