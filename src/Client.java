@@ -10,6 +10,7 @@ public class Client {
     private ObjectInputStream in;          //stream read from the socket
     private String message;                //message send to the server
     private String MESSAGE;                //capitalized message read from the server
+    long downloadRate;
 
     // corresponding peer address and port
     private String pAddress;
