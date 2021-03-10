@@ -3,6 +3,7 @@ class Peer {
     private Server server;
     private int peerID;
     private log logger;
+    private int clientBitfield;
 
     Peer(String pAddress, String pPort){
         client = new Client(pAddress, Integer.parseInt(pPort));
@@ -13,7 +14,7 @@ class Peer {
     // ---------------------  PROJECT CODE  -----------------------------
     public int verifyHandshake(String handshake) {
         String first18Bytes = handshake.substring(0, 18);
-        if(first18Bytes != "P2PFILESHARINGPROJ")
+        if(!first18Bytes.equals("P2PFILESHARINGPROJ"))
             return -1;
 
         for(int i = 18; i < 28; i++) {
@@ -45,7 +46,7 @@ class Peer {
                 //interested(peerID);
                 break;
             case 3 : // not interested
-                //not_interested(peerID);
+                //notInterested(peerID);
                 break;
             case 4 : // have
                 int have_pieceIndex = message & (0xFFFFFFFF << 5*8);
@@ -54,10 +55,10 @@ class Peer {
             case 5 : // bitfield
                 int payloadLength = length - 1; // 1 Byte for message type
                 int bitfieldMask = 0;
-                for(int i = 0; i < payloadLength; i++)
+                for(int i = 0; i < payloadLength * 8; i++)
                     bitfieldMask |= (0x1 << i);
-                int bitfield = message & (bitfieldMask << 5*8);
-                //bitfield(peerID, bitfield);
+                int serverBitfield = message & (bitfieldMask << 5*8);
+                verifyBitfield(peerID, serverBitfield);
                 break;
             case 6 : // request
                 int req_pieceIndex = message & (0xFFFFFFFF << 5*8);;
@@ -77,5 +78,17 @@ class Peer {
         }
     }
 
+    private void verifyBitfield(int peerID, int serverBitfield) {
 
+        //if the serverBitfield has more set bits than the clientBitfield
+        if((clientBitfield | serverBitfield) > clientBitfield){
+            //send interested message
+            //interested(peerID);
+        }
+        else{
+            //send uninterested message
+            //notInterested(peerID);
+        }
+
+    }
 }
