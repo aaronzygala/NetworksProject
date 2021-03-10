@@ -1,4 +1,4 @@
-public class Peer {
+class Peer {
     private Client client;
     private Server server;
     private int peerID;
