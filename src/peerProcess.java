@@ -130,7 +130,7 @@ class Peer {
     }
 
     public static void main(String[] args) {
-
+        RemotePeerInfo peer = RemotePeerInfo(args[1],);
 
     }
 }
