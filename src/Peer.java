@@ -1,10 +1,13 @@
 public class Peer {
     private Client client;
     private Server server;
+    private int peerID;
+    private log logger;
 
     Peer(String pAddress, String pPort){
         client = new Client(pAddress, Integer.parseInt(pPort));
         server = new Server(pAddress, Integer.parseInt(pPort));
+        logger = new log(peerID);
     }
 
     // ---------------------  PROJECT CODE  -----------------------------
