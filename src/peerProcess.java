@@ -1,7 +1,7 @@
 class Peer {
     private Client client;
     private Server server;
-    private int peerID;
+    public int peerID;
     private log logger;
     private int clientBitfield;
 
