@@ -1,3 +1,7 @@
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.util.Vector;
+
 class Peer {
     private Client client;
     private Server server;
@@ -5,10 +9,43 @@ class Peer {
     private log logger;
     private int clientBitfield;
 
+    // vector to hold data from Common.cfg
+    /*
+        Index   Description
+        0       NumberOfPreferredNeighbors
+        1       UnchokingInterval
+        2       OptimisticUnchokingInterval
+        3       FileName
+        4       FileSize
+        5       PieceSize
+
+     */
+    private Vector commonData;
+
     Peer(String pAddress, String pPort){
         client = new Client(pAddress, Integer.parseInt(pPort));
         server = new Server(pAddress, Integer.parseInt(pPort));
         logger = new log(peerID);
+    }
+
+    public static void getConfiguration(Vector commonData, String filepath) {
+        String st;
+        int i1;
+
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(filepath));
+            while ((st = in.readLine()) != null) {
+
+                String[] tokens = st.split("\\s+");
+
+                commonData.add(tokens[1]);
+            }
+
+            in.close();
+        } catch (Exception ex) {
+            System.out.println(ex.toString());
+        }
+
     }
 
     // ---------------------  PROJECT CODE  -----------------------------
@@ -89,6 +126,11 @@ class Peer {
             //send uninterested message
             //notInterested(peerID);
         }
+
+    }
+
+    public static void main(String[] args) {
+
 
     }
 }
