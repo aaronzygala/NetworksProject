@@ -9,6 +9,9 @@ class Peer {
     private log logger;
     private int clientBitfield;
 
+    private String pAddress;
+    private int pPort;
+
     // vector to hold data from Common.cfg
     /*
         Index   Description
@@ -22,18 +25,24 @@ class Peer {
      */
     private Vector commonData;
 
-    Peer(String pAddress, String pPort){
-        client = new Client(pAddress, Integer.parseInt(pPort));
-        server = new Server(pAddress, Integer.parseInt(pPort));
+
+    Peer(String pAddress, int pPort, int peerID){
+        this.pAddress = pAddress;
+        this.pPort = pPort;
+        this.peerID = peerID;
+
+        client = new Client();
+        server = new Server(pAddress, pPort);
         logger = new log(peerID);
     }
 
-    public static void getConfiguration(Vector commonData, String filepath) {
+    public void setCommonData() {
         String st;
         int i1;
+        commonData = new Vector();
 
         try {
-            BufferedReader in = new BufferedReader(new FileReader(filepath));
+            BufferedReader in = new BufferedReader(new FileReader("project_config_file_small/Common.cfg"));
             while ((st = in.readLine()) != null) {
 
                 String[] tokens = st.split("\\s+");
@@ -46,6 +55,26 @@ class Peer {
             System.out.println(ex.toString());
         }
 
+    }
+
+    public static void getConfigurationPeerInfo(Vector peerInfoVector, String filepath) {
+        String st;
+        int i1;
+
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(filepath));
+            while ((st = in.readLine()) != null) {
+
+                String[] tokens = st.split("\\s+");
+
+                peerInfoVector.addElement(new RemotePeerInfo(tokens[0], tokens[1], tokens[2]));
+            }
+
+            in.close();
+        }
+        catch (Exception ex) {
+            System.out.println(ex.toString());
+        }
     }
 
     // ---------------------  PROJECT CODE  -----------------------------
@@ -130,8 +159,55 @@ class Peer {
     }
 
     public static void main(String[] args) {
-        for(int i = 1; i <= 9; i++) {
-            RemotePeerInfo peer = new RemotePeerInfo(args[1], "localhost", Integer.toString(8000 + i));
+
+        // want to check if main is actually creating a process
+        System.out.print("Hello I am being called within peerProcess with ID: ");
+        Peer peer;
+        if(args.length != 0) {
+            System.out.println(Integer.parseInt(args[1]));
+
+            // initializing peer with unique port but all on localhost so we can test it!
+            //                        Address      port                       id
+            peer = new Peer("localhost", Integer.parseInt(args[1]), Integer.parseInt(args[0]));
         }
+        // if we don't pass data
+        else {
+            System.out.println(1002);
+
+            // initializing peer with unique port but all on localhost so we can test it!
+            //                         Address      port                id
+            peer = new Peer("localhost", 8001, 1002);
+        }
+
+        Vector<RemotePeerInfo> peerInfoVector = new Vector<RemotePeerInfo>();
+        String peerInfo = "project_config_file_small/PeerInfo.cfg";
+        System.out.println("Working Directory = " + System.getProperty("user.dir"));
+
+        try {
+            // initialize common vector to initialize data from Common.cfg
+            peer.setCommonData();
+
+            // initialize peerInfoVector to hold data about each peer
+            getConfigurationPeerInfo(peerInfoVector, peerInfo);
+
+            // start server side so peer can listen to new requests
+            // this start method is apart of the Thread class. it calls the run()
+            // function which overrides the run() function originally belonging to Thread
+            // this spawns a thread which just runs run(), thread closes automatically when run()
+            // finishes
+            peer.server.start();
+
+            // by project specification establish connections to each peer
+            for(int port = 8001; port <= 8009; port++) {
+                peer.client.run("localhost", port);
+            }
+
+
+        }
+        catch (Exception e) {
+            System.out.println(e);
+        }
+        System.out.println("end of peerProcess");
+
     }
 }

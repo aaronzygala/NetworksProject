@@ -4,7 +4,7 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
-public class Client {
+public class Client{
     private Socket requestSocket;           //socket connect to the server
     private ObjectOutputStream out;         //stream write to the socket
     private ObjectInputStream in;          //stream read from the socket
@@ -12,21 +12,11 @@ public class Client {
     private String MESSAGE;                //capitalized message read from the server
     long downloadRate;
 
-    // corresponding peer address and port
-    private String pAddress;
-    private int pPort;
-
-
-    Client(String pAddress, int pPort) {
-        this.pAddress = pAddress;
-        this.pPort = pPort;
-    }
-
     // function to get message to do work in Peer object
     String getMESSAGE(){ return MESSAGE; }
 
     // function to run program by making socket and doing requests
-    void run()
+    void run(String pAddress, int pPort)
     {
         try{
             //create a socket to connect to the server
