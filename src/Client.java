@@ -4,13 +4,21 @@ import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
 
-public class Client{
+public class Client extends Thread{
     private Socket requestSocket;           //socket connect to the server
     private ObjectOutputStream out;         //stream write to the socket
     private ObjectInputStream in;          //stream read from the socket
     private String message;                //message send to the server
     private String MESSAGE;                //capitalized message read from the server
     long downloadRate;
+
+    private String pAddress;
+    private  int pPort;
+
+    public void setpAP(String pAddress, int pPort) {
+        this.pAddress = pAddress;
+        this.pPort = pPort;
+    }
 
     // function to get message to do work in Peer object
     String getMESSAGE(){ return MESSAGE; }

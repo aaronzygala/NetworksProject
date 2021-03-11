@@ -195,12 +195,13 @@ class Peer {
             // function which overrides the run() function originally belonging to Thread
             // this spawns a thread which just runs run(), thread closes automatically when run()
             // finishes
-            peer.server.start();
+            //peer.server.start();
 
             // by project specification establish connections to each peer
-            for(int port = 8001; port <= 8009; port++) {
-                peer.client.run("localhost", port);
-            }
+           // for(int port = 8001; port <= 8009; port++) {
+
+             //   peer.client.run("localhost", port);
+           // }
 
 
         }
