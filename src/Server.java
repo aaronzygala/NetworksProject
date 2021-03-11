@@ -5,7 +5,14 @@ import java.nio.channels.*;
 import java.security.MessageDigest;
 import java.util.*;
 
-public class Server {
+
+// a bit tricky what was done here
+// server gets spawned as a thread from peerProcess
+// server, now a thread runs run()
+// then inside server.run() it spawns more threads
+// a thread as a listener, and a new thread with each incoming connection
+
+public class Server extends Thread {
 
     private int pPort;   //The server will be listening on this port number
     private String pAddress;
@@ -17,7 +24,7 @@ public class Server {
         this.pPort = pPort;
     }
 
-    public void start() throws IOException {
+    public void run() {
 
         try{
             System.out.println("The server is running.");
@@ -32,11 +39,14 @@ public class Server {
                 System.out.println("Client "  + clientNum + " is connected!");
                 clientNum++;
             }
+
+
         } catch(Exception e) {
             System.out.println(e);
 
         } finally {
-            listener.close();
+            try { listener.close(); }
+            catch (IOException e) { e.printStackTrace(); }
         }
 
     }
