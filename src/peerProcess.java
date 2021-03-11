@@ -77,7 +77,7 @@ class Peer {
         }
     }
 
-    // ---------------------  PROJECT CODE  -----------------------------
+
     public int verifyHandshake(String handshake) {
         String first18Bytes = handshake.substring(0, 18);
         if(!first18Bytes.equals("P2PFILESHARINGPROJ"))
