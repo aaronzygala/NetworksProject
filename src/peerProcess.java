@@ -1,9 +1,12 @@
+import java.util.Dictionary;
+
 class Peer {
     private Client client;
     private Server server;
     private int peerID;
     private log logger;
     private int clientBitfield;
+    private Dictionary<Integer, Boolean> interestList;
 
     Peer(String pAddress, String pPort){
         client = new Client(pAddress, Integer.parseInt(pPort));
@@ -43,10 +46,10 @@ class Peer {
                 //unchoke(peerID);
                 break;
             case 2 : // interested
-                //interested(peerID);
+                interested(peerID);
                 break;
             case 3 : // not interested
-                //notInterested(peerID);
+                notInterested(peerID);
                 break;
             case 4 : // have
                 int have_pieceIndex = message & (0xFFFFFFFF << 5*8);
@@ -62,7 +65,7 @@ class Peer {
                 break;
             case 6 : // request
                 int req_pieceIndex = message & (0xFFFFFFFF << 5*8);;
-                //request(peerID, req_pieceIndex);
+                request(peerID, req_pieceIndex);
                 break;
             case 7 : // piece
                 int pieceIndex = message & (0xFFFFFFFF << 5*8);;
@@ -78,17 +81,23 @@ class Peer {
         }
     }
 
-    private void verifyBitfield(int peerID, int serverBitfield) {
+    private void interested(int peerID) {
+        interestList.put(peerID, true);
+    }
 
+    private void notInterested(int peerID) {
+        interestList.put(peerID, false);
+    }
+
+    private void verifyBitfield(int peerID, int serverBitfield) {
         //if the serverBitfield has more set bits than the clientBitfield
         if((clientBitfield | serverBitfield) > clientBitfield){
             //send interested message
-            //interested(peerID);
+            interested(peerID);
         }
         else{
             //send uninterested message
-            //notInterested(peerID);
+            notInterested(peerID);
         }
-
     }
 }
