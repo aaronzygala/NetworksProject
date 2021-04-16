@@ -11,6 +11,37 @@ public class peerHandler {
     private Client optimisticallyUnchokedNeighbor;
     boolean hasFile;
     Random random = new Random();
+
+    int NumberOfPreferredNeighbors;
+    double UnchokingInterval;
+    double OptimisticUnchokingInterval;
+    String FileName;
+    int FileSize;
+    int PieceSize;
+
+    public void readInCommon() {
+        BufferedReader in = new BufferedReader(new FileReader("project_config_file_small/Common.cfg"));
+        while((line = in.readLine()) != null) {
+            String[] data = line.split(" ");
+
+            for(int i = 0; i < data.length; i++) {
+                if (data[0] == "NumberOfPreferredNeighbors")
+                    NumberOfPreferredNeighbors = data[1];
+                else if (data[0] == "UnchokingInterval")
+                    UnchokingInterval = data[1];
+                else if (data[0] == "OptimisticUnchokingInterval")
+                    OptimisticUnchokingInterval = data[1];
+                else if (data[0] == "FileName")
+                    FileName = data[1];
+                else if (data[0] == "FileSize")
+                    FileSize = data[1];
+                else if (data[0] == "PieceSize")
+                    PieceSize = data[1];
+            }
+        }
+
+        in.close();
+    }
     
     public void selectPreferredNeighbors(int NumberOfPreferredNeighbors) {
         
