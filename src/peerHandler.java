@@ -20,27 +20,34 @@ public class peerHandler {
     int PieceSize;
 
     public void readInCommon() {
-        BufferedReader in = new BufferedReader(new FileReader("project_config_file_small/Common.cfg"));
-        while((line = in.readLine()) != null) {
-            String[] data = line.split(" ");
+        try {
+            BufferedReader in = new BufferedReader(new FileReader("project_config_file_small/Common.cfg"));
+            String line;
 
-            for(int i = 0; i < data.length; i++) {
-                if (data[0] == "NumberOfPreferredNeighbors")
-                    NumberOfPreferredNeighbors = data[1];
-                else if (data[0] == "UnchokingInterval")
-                    UnchokingInterval = data[1];
-                else if (data[0] == "OptimisticUnchokingInterval")
-                    OptimisticUnchokingInterval = data[1];
-                else if (data[0] == "FileName")
-                    FileName = data[1];
-                else if (data[0] == "FileSize")
-                    FileSize = data[1];
-                else if (data[0] == "PieceSize")
-                    PieceSize = data[1];
+            while((line = in.readLine()) != null) {
+                String[] data = line.split(" ");
+
+                for(int i = 0; i < data.length; i++) {
+                    if (data[0] == "NumberOfPreferredNeighbors")
+                        NumberOfPreferredNeighbors = Integer.parseInt(data[1]);
+                    else if (data[0] == "UnchokingInterval")
+                        UnchokingInterval = Double.parseDouble(data[1]);
+                    else if (data[0] == "OptimisticUnchokingInterval")
+                        OptimisticUnchokingInterval = Double.parseDouble(data[1]);
+                    else if (data[0] == "FileName")
+                        FileName = data[1];
+                    else if (data[0] == "FileSize")
+                        FileSize = Integer.parseInt(data[1]);
+                    else if (data[0] == "PieceSize")
+                        PieceSize = Integer.parseInt(data[1]);
+                }
             }
-        }
 
-        in.close();
+            in.close();
+        }
+        catch (Exception ex) {
+            System.out.println(ex.toString());
+        }
     }
     
     public void selectPreferredNeighbors(int NumberOfPreferredNeighbors) {
