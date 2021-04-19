@@ -198,9 +198,18 @@ class Peer {
         }
     }
 
+    public boolean isInteresting(byte[] bitfield, byte[] senderBitfield) {
+        byte[] unownedPieces = new byte[bitfield.length];
+        for(int i = 0; i < bitfield.length; i++) {
+            unownedPieces[i] = (byte) ((bitfield[i] ^ senderBitfield[i]) & senderBitfield[i]);
+            if(unownedPieces[i] != 0)
+                return true;
+        }
+        return false;
+    }
+
     public int randRequestPiece(byte[] bitfield, byte[] senderBitfield) {
         byte[] unownedPieces = new byte[bitfield.length];
-        int unownedCount = 0;
         for(int i = 0; i < bitfield.length; i++)
             unownedPieces[i] = (byte)((bitfield[i] ^ senderBitfield[i]) & senderBitfield[i]);
 
