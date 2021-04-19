@@ -3,7 +3,6 @@ import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
 import java.util.*;
-import Peer;
 
 public class peerHandler {
     private Map<Integer, Client> peerMap;
@@ -13,9 +12,8 @@ public class peerHandler {
     boolean hasFile;
     Random random = new Random();
 
-    public synchronized void selectPreferredNeighbors(int NumberOfPreferredNeighbors) {
-        
-        long timer = commonData[1] * 1000;
+    public synchronized void selectPreferredNeighbors(int NumberOfPreferredNeighbors) throws InterruptedException {
+        long timer = Integer.parseInt(Peer.getCommonData().elementAt(1).toString()) * 1000;
 
         new Thread() {
             public void run() {
@@ -63,8 +61,8 @@ public class peerHandler {
         Thread.sleep(timer);
     }
 
-    public synchronized void optimisticallySelectNeighbor() {
-        long timer = commonData[2] * 1000;
+    public synchronized void optimisticallySelectNeighbor() throws InterruptedException {
+        long timer = Integer.parseInt(Peer.getCommonData().elementAt(2).toString()) * 1000;
 
         new Thread() {
             public void run() {
@@ -79,6 +77,6 @@ public class peerHandler {
                 }
             }
         };
-        Thread.sleep(timer);      
+        Thread.sleep(timer);
     }
 }

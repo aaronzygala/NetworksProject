@@ -1,8 +1,7 @@
 
+import java.io.*;
 import java.util.Arrays;
 import java.util.Dictionary;
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.util.Vector;
 
 class Peer {
@@ -27,7 +26,7 @@ class Peer {
         5       PieceSize
 
      */
-    private Vector commonData;
+    private static Vector commonData;
 
 
     Peer(String pAddress, int pPort, int peerID){
@@ -59,6 +58,10 @@ class Peer {
             System.out.println(ex.toString());
         }
 
+    }
+
+    public static Vector getCommonData() {
+        return commonData;
     }
 
     public static void getConfigurationPeerInfo(Vector peerInfoVector, String filepath) {
@@ -155,6 +158,41 @@ class Peer {
         else{
             //send uninterested message
             notInterested(peerID);
+        }
+    }
+
+    public byte[] getPiece(int index) {
+        try {
+            int fileSize = Integer.parseInt(commonData.elementAt(4).toString());
+            int pieceSize = Integer.parseInt(commonData.elementAt(5).toString());
+            FileInputStream fileStream = new FileInputStream(commonData.elementAt(3).toString());
+            long pieceStart = pieceSize * index;
+            int length = pieceSize;
+            // Check if we are at the end piece
+            if(index == Math.ceil(fileSize/pieceSize))
+                length = fileSize - (int)pieceStart;
+            byte[] piece = new byte[length];
+            fileStream.skip(pieceStart);
+            fileStream.read(piece);
+            fileStream.close();
+            return piece;
+        } catch(Exception e) {
+            System.out.println(e);
+            return null;
+        }
+    }
+
+    public void storePiece(byte[] piece, int index) {
+        try {
+            int pieceSize = Integer.parseInt(commonData.elementAt(5).toString());
+            int pieceStart = pieceSize * index;
+            RandomAccessFile fileStream = new RandomAccessFile(commonData.elementAt(3).toString(), "rw");
+            fileStream.skipBytes(pieceStart);
+            fileStream.write(piece);
+            fileStream.close();
+            //Update bitfield
+        } catch(Exception e) {
+            System.out.println(e);
         }
     }
 
