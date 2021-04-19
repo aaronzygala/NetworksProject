@@ -20,4 +20,26 @@ public class RemotePeerInfo {
         peerPort = pPort;
         //peer = new Peer(pAddress, pPort);
     }
+    public String getPeerId(){
+        return peerId;
+    }
+    public void setPeerId(String peerId) {
+        this.peerId = peerId;
+    }
+
+    public String getPeerAddress() {
+        return peerAddress;
+    }
+
+    public void setPeerAddress(String peerAddress) {
+        this.peerAddress = peerAddress;
+    }
+
+    public String getPeerPort() {
+        return peerPort;
+    }
+
+    public void setPeerPort(String peerPort) {
+        this.peerPort = peerPort;
+    }
 }
