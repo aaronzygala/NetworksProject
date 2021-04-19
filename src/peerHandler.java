@@ -1,9 +1,4 @@
-import java.net.*;
-import java.io.*;
-import java.nio.*;
-import java.nio.channels.*;
 import java.util.*;
-import Peer;
 
 public class peerHandler {
     private Map<Integer, Client> peerMap;
