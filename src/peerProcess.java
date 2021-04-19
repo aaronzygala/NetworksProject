@@ -2,6 +2,7 @@
 import java.io.*;
 import java.util.Arrays;
 import java.util.Dictionary;
+import java.util.Random;
 import java.util.Vector;
 
 class Peer {
@@ -11,6 +12,7 @@ class Peer {
     private log logger;
     private int clientBitfield;
     private Dictionary<Integer, Boolean> interestList;
+    Random random = new Random();
 
     private String pAddress;
     private int pPort;
@@ -194,6 +196,23 @@ class Peer {
         } catch(Exception e) {
             System.out.println(e);
         }
+    }
+
+    public int randRequestPiece(byte[] bitfield, byte[] senderBitfield) {
+        byte[] unownedPieces = new byte[bitfield.length];
+        int unownedCount = 0;
+        for(int i = 0; i < bitfield.length; i++)
+            unownedPieces[i] = (byte)((bitfield[i] ^ senderBitfield[i]) & senderBitfield[i]);
+
+        int byteIndex = random.nextInt(bitfield.length);
+        while(unownedPieces[byteIndex] == 0)
+            byteIndex = random.nextInt(bitfield.length);
+
+        int bitIndex = random.nextInt(8);
+        while((unownedPieces[byteIndex] & bitIndex) == 0)
+            bitIndex = random.nextInt(8);
+
+        return byteIndex + bitIndex;
     }
 
     public static void main(String[] args) {
