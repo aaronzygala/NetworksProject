@@ -8,8 +8,14 @@ import java.util.Dictionary;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Vector;
+import java.io.*;
+import java.util.Arrays;
+import java.util.Dictionary;
+import java.util.Random;
+import java.util.Vector;
 
 class Peer {
+    private static Vector commonData;
     private Client client;
     private Server server;
     public int peerID;
@@ -17,6 +23,7 @@ class Peer {
     private int clientBitfield;
     private Dictionary<Integer, Boolean> interestList;
     public Vector<RemotePeerInfo> peerInfoVector;
+    Random random = new Random();
 
     private String pAddress;
     private int pPort;
@@ -32,8 +39,6 @@ class Peer {
         5       PieceSize
 
      */
-    private Vector commonData;
-
 
     Peer(String pAddress, int pPort, int peerID, Vector<RemotePeerInfo> peerInfoVector){
         this.pAddress = pAddress;
@@ -64,6 +69,10 @@ class Peer {
             System.out.println(ex.toString());
         }
 
+    }
+
+    public static Vector getCommonData() {
+        return commonData;
     }
 
     public void decodeMessage(byte[] message) {
@@ -127,6 +136,66 @@ class Peer {
             //send uninterested message
             notInterested(peerID);
         }
+    }
+    public byte[] getPiece(int index) {
+        try {
+            int fileSize = Integer.parseInt(commonData.elementAt(4).toString());
+            int pieceSize = Integer.parseInt(commonData.elementAt(5).toString());
+            FileInputStream fileStream = new FileInputStream(commonData.elementAt(3).toString());
+            long pieceStart = pieceSize * index;
+            int length = pieceSize;
+            // Check if we are at the end piece
+            if(index == Math.ceil(fileSize/pieceSize))
+                length = fileSize - (int)pieceStart;
+            byte[] piece = new byte[length];
+            fileStream.skip(pieceStart);
+            fileStream.read(piece);
+            fileStream.close();
+            return piece;
+        } catch(Exception e) {
+            System.out.println(e);
+            return null;
+        }
+    }
+
+    public void storePiece(byte[] piece, int index) {
+        try {
+            int pieceSize = Integer.parseInt(commonData.elementAt(5).toString());
+            int pieceStart = pieceSize * index;
+            RandomAccessFile fileStream = new RandomAccessFile(commonData.elementAt(3).toString(), "rw");
+            fileStream.skipBytes(pieceStart);
+            fileStream.write(piece);
+            fileStream.close();
+            //Update bitfield
+        } catch(Exception e) {
+            System.out.println(e);
+        }
+    }
+
+    public boolean isInteresting(byte[] bitfield, byte[] senderBitfield) {
+        byte[] unownedPieces = new byte[bitfield.length];
+        for(int i = 0; i < bitfield.length; i++) {
+            unownedPieces[i] = (byte) ((bitfield[i] ^ senderBitfield[i]) & senderBitfield[i]);
+            if(unownedPieces[i] != 0)
+                return true;
+        }
+        return false;
+    }
+
+    public int randRequestPiece(byte[] bitfield, byte[] senderBitfield) {
+        byte[] unownedPieces = new byte[bitfield.length];
+        for(int i = 0; i < bitfield.length; i++)
+            unownedPieces[i] = (byte)((bitfield[i] ^ senderBitfield[i]) & senderBitfield[i]);
+
+        int byteIndex = random.nextInt(bitfield.length);
+        while(unownedPieces[byteIndex] == 0)
+            byteIndex = random.nextInt(bitfield.length);
+
+        int bitIndex = random.nextInt(8);
+        while(((int)unownedPieces[byteIndex] & (int)Math.pow(2, bitIndex)) == 0)
+            bitIndex = random.nextInt(8);
+
+        return byteIndex + bitIndex;
     }
 
     public void start() throws IOException {

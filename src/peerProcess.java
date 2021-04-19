@@ -4,6 +4,25 @@ import java.util.Vector;
 
 public class peerProcess {
 
+    public static void getConfigurationPeerInfo(Vector peerInfoVector, String filepath) {
+        String st;
+        int i1;
+
+        try {
+            BufferedReader in = new BufferedReader(new FileReader(filepath));
+            while ((st = in.readLine()) != null) {
+
+                String[] tokens = st.split("\\s+");
+
+                peerInfoVector.addElement(new RemotePeerInfo(tokens[0], tokens[1], tokens[2]));
+            }
+
+            in.close();
+        }
+        catch (Exception ex) {
+            System.out.println(ex.toString());
+        }
+    }
     public static void main(String[] args) {
 
         Peer peer;
@@ -50,25 +69,5 @@ public class peerProcess {
         }
         System.out.println("end of peerProcess");
 
-    }
-
-    public static void getConfigurationPeerInfo(Vector peerInfoVector, String filepath) {
-        String st;
-        int i1;
-
-        try {
-            BufferedReader in = new BufferedReader(new FileReader(filepath));
-            while ((st = in.readLine()) != null) {
-
-                String[] tokens = st.split("\\s+");
-
-                peerInfoVector.addElement(new RemotePeerInfo(tokens[0], tokens[1], tokens[2]));
-            }
-
-            in.close();
-        }
-        catch (Exception ex) {
-            System.out.println(ex.toString());
-        }
     }
 }
