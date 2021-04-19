@@ -218,7 +218,7 @@ class Peer {
             byteIndex = random.nextInt(bitfield.length);
 
         int bitIndex = random.nextInt(8);
-        while((unownedPieces[byteIndex] & bitIndex) == 0)
+        while(((int)unownedPieces[byteIndex] & (int)Math.pow(2, bitIndex)) == 0)
             bitIndex = random.nextInt(8);
 
         return byteIndex + bitIndex;
