@@ -3,7 +3,7 @@ import java.util.*;
 public class peerHandler {
     private Map<Integer, Client> peerMap;
     private List<Client> preferredNeighbors;
-    private List<Client> interestedNeighbors;
+    public Dictionary<Integer, Boolean> interestedNeighbors;
     private Client optimisticallyUnchokedNeighbor;
     boolean hasFile;
     Random random = new Random();
@@ -24,20 +24,20 @@ public class peerHandler {
                             for(Map.Entry<Integer, Client> peer : peerMap.entrySet()) {
                                 if(peer.getValue().getDownloadRate() == fastestDLRate.getDownloadRate()
                                 && !preferredNeighbors.contains(peer.getValue())
-                                && interestedNeighbors.contains(peer.getValue())) {
+                                && interestedNeighbors.get(peer.getValue())) {
                                     if(random.nextInt(2) == 0) // 0 or 1
                                         fastestDLRate = peer.getValue();
                                 }
                                 else if(peer.getValue().getDownloadRate() > fastestDLRate.getDownloadRate()
                                 && !preferredNeighbors.contains(peer.getValue())
-                                && interestedNeighbors.contains(peer.getValue()))
+                                && interestedNeighbors.get(peer.getValue()))
                                     fastestDLRate = peer.getValue();
                             }
                             preferredNeighbors.add(fastestDLRate);
                         }
                         else {  // If peer has file, choose randomly
                             int index = random.nextInt(peerMap.size());
-                            while(preferredNeighbors.contains(peerMap.get(index)) || !interestedNeighbors.contains(peerMap.get(index)))
+                            while(preferredNeighbors.contains(peerMap.get(index)) || !interestedNeighbors.get(peerMap.get(index)))
                                 index = random.nextInt(peerMap.size());
                             preferredNeighbors.add(peerMap.get(index));
                         }
