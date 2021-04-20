@@ -11,7 +11,8 @@ public class peerThread extends Thread {
     private boolean initiator;
     private boolean isChoked;
     private  peerHandler pH;
-    private byte[] clientBitfield;
+    private byte[] myBitfield;
+    private byte[] otherBitfield;
     Random random = new Random();
 
     private final DataOutputStream outputData;
@@ -22,7 +23,7 @@ public class peerThread extends Thread {
         this.server = server;
         this.socket = connectionSocket;
         this.initiator = initiator;
-        this.clientBitfield = clientBitfield;
+        this.myBitfield = clientBitfield;
 
         outputData = new DataOutputStream(socket.getOutputStream());
         inputData = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
@@ -89,7 +90,7 @@ public class peerThread extends Thread {
     private void sendHandShake() {
         try {
             System.out.println(" **** ENTERING SEND HANDSHAKE ****");
-            String messageOut = "P2PFILESHARINGPROJ" + "0000000000" + server.peerID;
+            String messageOut = "P2PFILESHARINGPROJ" + "0000000000" + String.valueOf(server.peerID);
             System.out.println("MESSAGE: " + messageOut);
             outputData.write(messageOut.getBytes());
             outputData.flush();
@@ -133,48 +134,99 @@ public class peerThread extends Thread {
         return Integer.parseInt(Arrays.toString(handshake).substring(28, 32));
     }
 
-    public void decodeMessage(byte[] message) {
+    public void decodeMessage(byte[] message) throws IOException {
         int length = Integer.parseInt(Arrays.toString(message).substring(0,4));
         int type = message[4];
+        int byteIndex;
 
         switch(type) {
-            case 0 : // choke
+            case 0 : // choke - should be done
                 isChoked = true;
                 //logger.ChokedNeighbor(peerID1, peerID2);
                 break;
-            case 1 : // unchoke
+            case 1 : // unchoke - should be done
                 isChoked = false;
+                request();
                 //logger.UnchokedNeighbor(peerID1, peerID2);
                 break;
-            case 2 : // interested
+            case 2 : // interested - should be done
                 interested(Integer.parseInt(target.peerId));
+                //logger.interestedMessage(peerID1, peerID2);
                 break;
-            case 3 : // not interested
+            case 3 : // not interested - should be done
                 notInterested(Integer.parseInt(target.peerId));
                 //logger.NotInterestedMessage(peerID1, peerID2);
                 break;
-            case 4 : // have
-                int indexField = Integer.parseInt(Arrays.toString(message).substring(5,9));
-                //have(peerID, have_pieceIndex);
+            case 4 : // have - should be done
+                int index = Integer.parseInt(Arrays.toString(message).substring(5,9));
+                byteIndex = index / 8;
+                otherBitfield[byteIndex] |= (int)Math.pow(2, (index % 8));
+                verifyBitfield(Integer.parseInt(target.peerId), otherBitfield);
+                if(!pH.interestedNeighbors.get(target.peerId)) {
+                    String messageString = String.valueOf(1) + String.valueOf(2); // interested
+                    byte[] newMessage = messageString.getBytes();
+                    outputData.write(newMessage);
+                    outputData.flush();
+                }
                 //logger.HaveMessage(peerID1, peerID2, index);
                 break;
-            case 5 : // bitfield
-                int neighborBitfield = Integer.parseInt(Arrays.toString(message).substring(5,message.length));
-                verifyBitfield(Integer.parseInt(target.peerId), neighborBitfield);
+            case 5 : // bitfield - should be done
+                otherBitfield = (Arrays.toString(message).substring(5,message.length)).getBytes();
+                verifyBitfield(Integer.parseInt(target.peerId), otherBitfield);
+                if(!pH.interestedNeighbors.get(target.peerId)) {
+                    String messageString = String.valueOf(1) + String.valueOf(2); // interested
+                    byte[] newMessage = messageString.getBytes();
+                    outputData.write(newMessage);
+                    outputData.flush();
+                }
+                else {
+                    String messageString = String.valueOf(1) + String.valueOf(3); // not interested
+                    byte[] newMessage = messageString.getBytes();
+                    outputData.write(newMessage);
+                    outputData.flush();
+                }
                 break;
-            case 6 : // request
+            case 6 : // request - kinda of done
                 int req_pieceIndex = Integer.parseInt(Arrays.toString(message).substring(5,9));
                 byte[] piecePayload = getPiece(req_pieceIndex);
-                //request(peerID, req_pieceIndex);
+                // send piece
+                String messageString = String.valueOf(1 + piecePayload.length) + String.valueOf(7); // not interested
+                byte[] msgHeader = messageString.getBytes();
+                byte[] newMessage = new byte[msgHeader.length + piecePayload.length];
+                System.arraycopy(msgHeader, 0, newMessage, 0, msgHeader.length);
+                System.arraycopy(piecePayload, 0, newMessage, msgHeader.length, piecePayload.length);
+                outputData.write(newMessage);
+                outputData.flush();
                 break;
-            case 7 : // piece
+            case 7 : // piece - need to send HAVE to everyone
                 int pieceIndex = Integer.parseInt(Arrays.toString(message).substring(5,9));
-                int pieceData = Integer.parseInt(Arrays.toString(message).substring(9,message.length));
-                //piece(peerID, pieceIndex, pieceData);
+                byte[] pieceData = (Arrays.toString(message).substring(9,message.length)).getBytes();
+                storePiece(pieceData, pieceIndex);
+
+                byteIndex = pieceIndex / 8;
+                otherBitfield[byteIndex] |= (int)Math.pow(2, (pieceIndex % 8));
+
+                // send have to others
+
+                if(!isChoked)
+                    request();
+
                 break;
             default :
                 System.out.println("Invalid message type");
         }
+    }
+
+    void request() throws IOException {
+        int nextPieceIndex = randRequestPiece(myBitfield, otherBitfield);
+        String messageString;
+        if(nextPieceIndex == -1)    // Interested msg
+            messageString = String.valueOf(1) + String.valueOf(2);
+        else    // Request msg
+            messageString = String.valueOf(5) + String.valueOf(6) + String.valueOf(nextPieceIndex);
+        byte[] message = messageString.getBytes();
+        outputData.write(message);
+        outputData.flush();
     }
 
     private void interested(int peerID) {
@@ -185,9 +237,9 @@ public class peerThread extends Thread {
         pH.interestedNeighbors.put(peerID, false);
     }
 
-    private void verifyBitfield(int peerID, int neighborBitfield) {
+    private void verifyBitfield(int peerID, byte[] otherBitfield) throws IOException {
         //if the serverBitfield has more set bits than the clientBitfield
-        if((Integer.parseInt(clientBitfield.toString()) | neighborBitfield) > Integer.parseInt(clientBitfield.toString())){
+        if((Integer.parseInt(myBitfield.toString()) | Integer.parseInt(otherBitfield.toString())) > Integer.parseInt(myBitfield.toString())){
             //send interested message
             interested(peerID);
         }
@@ -233,20 +285,27 @@ public class peerThread extends Thread {
         }
     }
 
-    public boolean isInteresting(byte[] bitfield, byte[] senderBitfield) {
-        byte[] unownedPieces = new byte[bitfield.length];
-        for(int i = 0; i < bitfield.length; i++) {
-            unownedPieces[i] = (byte) ((bitfield[i] ^ senderBitfield[i]) & senderBitfield[i]);
-            if(unownedPieces[i] != 0)
-                return true;
-        }
-        return false;
-    }
+//    public boolean isInteresting(byte[] bitfield, byte[] senderBitfield) {
+//        byte[] unownedPieces = new byte[bitfield.length];
+//        for(int i = 0; i < bitfield.length; i++) {
+//            unownedPieces[i] = (byte) ((bitfield[i] ^ senderBitfield[i]) & senderBitfield[i]);
+//            if(unownedPieces[i] != 0)
+//                return true;
+//        }
+//        return false;
+//    }
 
     public int randRequestPiece(byte[] bitfield, byte[] senderBitfield) {
         byte[] unownedPieces = new byte[bitfield.length];
-        for(int i = 0; i < bitfield.length; i++)
-            unownedPieces[i] = (byte)((bitfield[i] ^ senderBitfield[i]) & senderBitfield[i]);
+        int zeroCount = 0;
+        for(int i = 0; i < bitfield.length; i++) {
+            unownedPieces[i] = (byte) ((bitfield[i] ^ senderBitfield[i]) & senderBitfield[i]);
+            if(unownedPieces[i] == 0)
+                zeroCount++;
+        }
+
+        if(zeroCount == unownedPieces.length)
+            return -1;
 
         int byteIndex = random.nextInt(bitfield.length);
         while(unownedPieces[byteIndex] == 0)

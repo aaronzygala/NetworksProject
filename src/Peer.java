@@ -20,7 +20,7 @@ class Peer {
     //private Server server;
     public int peerID;
     private log logger;
-    private byte[] clientBitfield;
+    private byte[] myBitfield;
     private Dictionary<Integer, Boolean> interestList;
     public Vector<RemotePeerInfo> peerInfoVector;
 
@@ -85,7 +85,7 @@ class Peer {
                 Socket connectionSocket = connect(targetPeer);
                 if (connectionSocket == null) continue;
 
-                peerThread peerThread = new peerThread(this, targetPeer, connectionSocket, true, clientBitfield);
+                peerThread peerThread = new peerThread(this, targetPeer, connectionSocket, true, myBitfield);
                 peerThread.start();
             }
         }

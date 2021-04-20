@@ -1,7 +1,7 @@
 import java.util.*;
 
 public class peerHandler {
-    private Map<Integer, Client> peerMap;
+    public  Map<Integer, Client> peerMap;
     private List<Client> preferredNeighbors;
     public Dictionary<Integer, Boolean> interestedNeighbors;
     private Client optimisticallyUnchokedNeighbor;
