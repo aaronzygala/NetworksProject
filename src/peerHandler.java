@@ -22,13 +22,13 @@ public class peerHandler {
                             Client fastestDLRate = peerMap.get(0);
 
                             for(Map.Entry<Integer, Client> peer : peerMap.entrySet()) {
-                                if(peer.getValue().downloadRate == fastestDLRate.downloadRate
+                                if(peer.getValue().getDownloadRate() == fastestDLRate.getDownloadRate()
                                 && !preferredNeighbors.contains(peer.getValue())
                                 && interestedNeighbors.contains(peer.getValue())) {
                                     if(random.nextInt(2) == 0) // 0 or 1
                                         fastestDLRate = peer.getValue();
                                 }
-                                else if(peer.getValue().downloadRate > fastestDLRate.downloadRate
+                                else if(peer.getValue().getDownloadRate() > fastestDLRate.getDownloadRate()
                                 && !preferredNeighbors.contains(peer.getValue())
                                 && interestedNeighbors.contains(peer.getValue()))
                                     fastestDLRate = peer.getValue();
