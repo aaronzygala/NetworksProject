@@ -17,7 +17,7 @@ import java.util.Vector;
 class Peer {
     private static Vector commonData;
     private Client client;
-    private Server server;
+    //private Server server;
     public int peerID;
     private log logger;
     private int clientBitfield;
@@ -40,14 +40,14 @@ class Peer {
 
      */
 
-    Peer(String pAddress, int pPort, int peerID, Vector<RemotePeerInfo> peerInfoVector){
+    Peer(int peerID, Vector<RemotePeerInfo> peerInfoVector){
         this.pAddress = pAddress;
         this.pPort = pPort;
         this.peerID = peerID;
         this.peerInfoVector = peerInfoVector;
 
         client = new Client();
-        server = new Server(pAddress, pPort);
+        //server = new Server(pAddress, pPort);
         logger = new log(peerID);
     }
 
@@ -199,18 +199,31 @@ class Peer {
     }
 
     public void start() throws IOException {
+        System.out.println("BEGINNING PEER LOOP");
+        for (int i = this.peerID; i >= 1001; i--) {
+            if(this.peerID != i){
+                System.out.println("PEER : " + this.peerID + " IN PEER LOOP ATTEMPTING CONNECTION WITH " + i);
+                RemotePeerInfo targetPeer = getPeerInfoByID(peerInfoVector, i);
 
-        for (int i = this.peerID; i >= 1001; i--)
-        {
-            RemotePeerInfo targetPeer = getPeerInfoByID(peerInfoVector, i);
+                Socket connectionSocket = connect(targetPeer);
+                if (connectionSocket == null) continue;
 
-            Socket connectionSocket = connect(targetPeer);
-            if (connectionSocket == null) continue;
-
-            peerThread peerThread = new peerThread(this, targetPeer, connectionSocket, true);
-            peerThread.start();
-
+                peerThread peerThread = new peerThread(this, targetPeer, connectionSocket, true);
+                peerThread.start();
+            }
         }
+        //Thread to perform choking algorithm;
+        //ChokeThread chokeThread = new ChokeThread();
+        //chokeThread.start();
+
+        //if (!downloadedFile)
+        {
+            //waitForBitField();
+            //downloadedFile = true;
+            //logger.fullyDownloaded();
+        }
+
+        //waitForNeighborBitField();
     }
 
     private Socket connect(RemotePeerInfo target)
@@ -219,7 +232,7 @@ class Peer {
         {
             // make connection to target
             Socket socket = new Socket(target.getPeerAddress(), Integer.parseInt(target.getPeerPort()));
-//            System.out.println("Get: Connected to " + target.getPeerId() + " in port " + target.getPort());
+            System.out.println("Connected to " + target.getPeerId() + " in port " + target.getPeerPort());
 
             return socket;
         }

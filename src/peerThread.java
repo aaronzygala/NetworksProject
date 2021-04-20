@@ -1,9 +1,10 @@
 import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 
 public class peerThread extends Thread{
     private final Peer server;
@@ -29,6 +30,8 @@ public class peerThread extends Thread{
         try
         {
             // handshake message
+            System.out.println("***beginning peer thread ****");
+
             int success = handshake();
             if (success < 0)
             {
@@ -59,10 +62,11 @@ public class peerThread extends Thread{
     }
 
     private int handshake() throws IOException {
+
         if (initiator)
         {
             sendHandShake();
-            int targetId = receiveHandshake();
+            int targetId = receiveHandshakeInitiator();
 
             if (targetId < 0)
             {
@@ -89,8 +93,9 @@ public class peerThread extends Thread{
     private void sendHandShake() {
         try
         {
+            System.out.println(" **** ENTERING SEND HANDSHAKE ****");
             String messageOut = "P2PFILESHARINGPROJ" + "0000000000" + server.peerID;
-
+            System.out.println("MESSAGE: " + messageOut);
             outputData.write(messageOut.getBytes());
             outputData.flush();
         }
@@ -100,10 +105,25 @@ public class peerThread extends Thread{
         }
     }
     private int receiveHandshake() throws IOException {
+        System.out.println(" **** ENTERING RCV HANDSHAKE NON INITIATOR " + server.peerID + " ****");
+
         byte[] message = new byte[32];
+        System.out.println("MESSAGE: " + new String(message));
+
         inputData.readFully(message);
         return verifyHandshake(message);
 
+    }
+    private int receiveHandshakeInitiator() throws IOException {
+        byte[] message = new byte[32];
+        inputData.readFully(message);
+        String stringMessage = new String(message);
+        System.out.println("TARGET: " + target.getPeerId() + " MESSAGE: " + stringMessage.substring(28,32) + " END");
+
+        int peerID = Integer.parseInt(stringMessage.substring(28,32));
+        if(verifyHandshake(message) == -1 || peerID != Integer.parseInt(target.getPeerId()))
+            return -1;
+        return peerID;
     }
     public int verifyHandshake(byte[] handshake) {
         String first18Bytes = Arrays.toString(handshake).substring(0, 18);
@@ -114,6 +134,6 @@ public class peerThread extends Thread{
             if(handshake[i] != 0)
                 return -1;
         }
-        return Integer.parseInt(Arrays.toString(handshake).substring(28,31));
+        return Integer.parseInt(Arrays.toString(handshake).substring(28,32));
     }
 }

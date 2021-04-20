@@ -27,10 +27,10 @@ public class peerProcess {
 
         Peer peer;
         int peerId = 1002;
-        int portNumber = 8001;
+        //int portNumber = 8001;
         if(args.length != 0) {
             peerId = Integer.parseInt(args[0]);
-            portNumber = Integer.parseInt(args[1]);
+            //portNumber = Integer.parseInt(args[1]);
         }
         else {
             System.out.println("No command line arguments.");
@@ -43,7 +43,7 @@ public class peerProcess {
             // initialize peerInfoVector to hold data about each peer
             getConfigurationPeerInfo(peerInfoVector, peerInfo);
 
-            peer = new Peer("localhost", portNumber, peerId, peerInfoVector);
+            peer = new Peer(peerId, peerInfoVector);
 
             // initialize common vector to initialize data from Common.cfg
             peer.setCommonData();

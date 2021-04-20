@@ -87,8 +87,8 @@ public class StartRemotePeers {
                     System.out.println("Session to peer# " + remotePeer.getPeerId() + " at " + remotePeer.getPeerAddress());
 
                     Channel channel = session.openChannel("exec");
-                    System.out.println("remotePeerID "+remotePeer.getPeerId());
-                    ((ChannelExec) channel).setCommand("java Peer " + remotePeer.peerId);
+                    //System.out.println("remotePeerID "+remotePeer.getPeerId());
+                    ((ChannelExec) channel).setCommand("java peerProcess " + remotePeer.peerId);
 
                     channel.setInputStream(null);
                     ((ChannelExec) channel).setErrStream(System.err);
@@ -96,8 +96,8 @@ public class StartRemotePeers {
                     InputStream input = channel.getInputStream();
                     channel.connect();
 
-                    System.out.println("Channel Connected to peer# " + remotePeer.getPeerId() + " at "
-                            + remotePeer.getPeerAddress());
+                    //System.out.println("Channel Connected to peer# " + remotePeer.getPeerId() + " at "
+                    //        + remotePeer.getPeerAddress());
 
                     (new Thread() {
                         @Override
