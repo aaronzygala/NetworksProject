@@ -10,7 +10,7 @@ public class Client extends Thread{
     private ObjectInputStream in;          //stream read from the socket
     private String message;                //message send to the server
     private String MESSAGE;                //capitalized message read from the server
-    long downloadRate;
+    private static long downloadRate;
 
     private String pAddress;
     private  int pPort;
@@ -18,6 +18,14 @@ public class Client extends Thread{
     public void setpAP(String pAddress, int pPort) {
         this.pAddress = pAddress;
         this.pPort = pPort;
+    }
+
+    public static void setDownloadRate(long rate) {
+        downloadRate = rate;
+    }
+
+    public static long getDownloadRate() {
+        return downloadRate;
     }
 
     // function to get message to do work in Peer object

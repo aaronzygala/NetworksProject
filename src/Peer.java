@@ -15,7 +15,6 @@ import java.util.Random;
 import java.util.Vector;
 
 class Peer {
-    private static Vector commonData;
     private Client client;
     //private Server server;
     public int peerID;
@@ -39,6 +38,7 @@ class Peer {
         5       PieceSize
 
      */
+    private static Vector commonData;
 
     Peer(int peerID, Vector<RemotePeerInfo> peerInfoVector){
         this.pAddress = pAddress;
@@ -149,7 +149,9 @@ class Peer {
                 length = fileSize - (int)pieceStart;
             byte[] piece = new byte[length];
             fileStream.skip(pieceStart);
+            long start = System.nanoTime();
             fileStream.read(piece);
+            Client.setDownloadRate(System.nanoTime() - start);
             fileStream.close();
             return piece;
         } catch(Exception e) {
