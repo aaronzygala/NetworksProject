@@ -1,8 +1,7 @@
 import java.io.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Random;
+import java.util.*;
 
 public class peerThread extends Thread {
     private final Peer server;
@@ -13,7 +12,10 @@ public class peerThread extends Thread {
     private  peerHandler pH;
     private byte[] myBitfield;
     private byte[] otherBitfield;
+    private log logger;
     Random random = new Random();
+    private Vector<Client> preferredNeighbors;
+    private int pieceNum;
 
     private final ObjectOutputStream outputData;
     private final ObjectInputStream inputData;
@@ -24,6 +26,8 @@ public class peerThread extends Thread {
         this.socket = connectionSocket;
         this.initiator = initiator;
         this.myBitfield = clientBitfield;
+        preferredNeighbors = new Vector<>((int)(Peer.getCommonData().elementAt(0)));
+        pieceNum = 0;
 
         outputData = new ObjectOutputStream(socket.getOutputStream());
         inputData = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
@@ -41,7 +45,12 @@ public class peerThread extends Thread {
                 return;
             }
 
+            logger.ConnectionReceived(server.peerID, Integer.parseInt(target.peerId));
             isChoked = true;
+
+            pH.selectPreferredNeighbors(preferredNeighbors.size(), server.peerID);
+            pH.optimisticallySelectNeighbor(server.peerID);
+
             while (true) {
                 int length = inputData.available();
                 byte[] message = new byte[length];
@@ -51,7 +60,7 @@ public class peerThread extends Thread {
                 //READ INCOMING DATA, SEND CORRESPONDING MESSAGE
             }
 
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         } finally {
             try {
@@ -142,20 +151,20 @@ public class peerThread extends Thread {
         switch(type) {
             case 0 : // choke - should be done
                 isChoked = true;
-                //logger.ChokedNeighbor(peerID1, peerID2);
+                logger.ChokedNeighbor(server.peerID, Integer.parseInt(target.peerId));
                 break;
             case 1 : // unchoke - should be done
                 isChoked = false;
                 request();
-                //logger.UnchokedNeighbor(peerID1, peerID2);
+                logger.UnchokedNeighbor(server.peerID, Integer.parseInt(target.peerId));
                 break;
             case 2 : // interested - should be done
                 interested(Integer.parseInt(target.peerId));
-                //logger.interestedMessage(peerID1, peerID2);
+                logger.InterestedMessage(server.peerID, Integer.parseInt(target.peerId));
                 break;
             case 3 : // not interested - should be done
                 notInterested(Integer.parseInt(target.peerId));
-                //logger.NotInterestedMessage(peerID1, peerID2);
+                logger.NotInterestedMessage(server.peerID, Integer.parseInt(target.peerId));
                 break;
             case 4 : // have - should be done
                 int index = Integer.parseInt(Arrays.toString(message).substring(5,9));
@@ -168,7 +177,7 @@ public class peerThread extends Thread {
                     outputData.write(newMessage);
                     outputData.flush();
                 }
-                //logger.HaveMessage(peerID1, peerID2, index);
+                logger.HaveMessage(server.peerID, Integer.parseInt(target.peerId), index);
                 break;
             case 5 : // bitfield - should be done
                 otherBitfield = (Arrays.toString(message).substring(5,message.length)).getBytes();
@@ -202,6 +211,8 @@ public class peerThread extends Thread {
                 int pieceIndex = Integer.parseInt(Arrays.toString(message).substring(5,9));
                 byte[] pieceData = (Arrays.toString(message).substring(9,message.length)).getBytes();
                 storePiece(pieceData, pieceIndex);
+                pieceNum++;
+                logger.DownloadedPiece(server.peerID, Integer.parseInt(target.peerId), pieceIndex, pieceNum);
 
                 byteIndex = pieceIndex / 8;
                 myBitfield[byteIndex] |= (int)Math.pow(2, (pieceIndex % 8));
@@ -237,6 +248,7 @@ public class peerThread extends Thread {
                 return;
         }
         server.setDone(String.valueOf(server.peerID));
+        logger.CompletedDownload(server.peerID);
     }
 
     private void interested(int peerID) {
