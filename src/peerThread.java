@@ -281,7 +281,7 @@ public class peerThread extends Thread {
             if(index == Math.ceil(fileSize/pieceSize))
                 length = fileSize - (int)pieceStart;
             byte[] piece = new byte[length];
-            fileStream.skip(pieceStart);
+            fileStream.skipNBytes(pieceStart);
             long start = System.nanoTime();
             fileStream.read(piece);
             Client.setDownloadRate(System.nanoTime() - start);
