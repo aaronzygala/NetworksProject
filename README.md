@@ -3,6 +3,7 @@
 Group members: Luka Antoljak, Ori Leibovici, Aaron Zygala
 
 What has been done:
+
 Logging functionality,
 
 Message functionality:
