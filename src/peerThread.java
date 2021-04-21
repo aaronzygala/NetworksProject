@@ -208,7 +208,7 @@ public class peerThread extends Thread {
             case 7 : // piece - need to send HAVE to everyone
                 int pieceIndex = Integer.parseInt(Arrays.toString(message).substring(5,9));
                 byte[] pieceData = (Arrays.toString(message).substring(9,message.length)).getBytes();
-                storePiece(pieceData, pieceIndex);
+                setPiece(pieceData, pieceIndex);
                 pieceNum++;
                 logger.DownloadedPiece(server.peerID, Integer.parseInt(client.peerId), pieceIndex, pieceNum);
 
@@ -279,7 +279,7 @@ public class peerThread extends Thread {
             if(index == Math.ceil(fileSize/pieceSize))
                 length = fileSize - (int)pieceStart;
             byte[] piece = new byte[length];
-            fileStream.skip(pieceStart);
+            fileStream.skipNBytes(pieceStart);
             long start = System.nanoTime();
             fileStream.read(piece);
             Client.setDownloadRate(System.nanoTime() - start);
@@ -291,7 +291,7 @@ public class peerThread extends Thread {
         }
     }
 
-    public void storePiece(byte[] piece, int index) {
+    public void setPiece(byte[] piece, int index) {
         try {
             int pieceSize = Integer.parseInt(Peer.getCommonData().elementAt(5).toString());
             int pieceStart = pieceSize * index;
