@@ -15,7 +15,12 @@ public class Main {
 
                 String[] tokens = st.split("\\s+");
 
-                peerInfoVector.addElement(new RemotePeerInfo(tokens[0], tokens[1], tokens[2]));
+                boolean hasFile;
+                if(tokens[3] == "1")
+                    hasFile = true;
+                else
+                    hasFile = false;
+                peerInfoVector.addElement(new RemotePeerInfo(tokens[0], tokens[1], tokens[2], hasFile));
             }
 
             in.close();
@@ -33,7 +38,12 @@ public class Main {
 
                 String[] tokens = st.split("\\s+");
 
-                peerInfoVector.addElement(new RemotePeerInfo(tokens[0], "localhost", Integer.toString(8000 + i++)));
+                boolean hasFile;
+                if(tokens[3] == "1")
+                    hasFile = true;
+                else
+                    hasFile = false;
+                peerInfoVector.addElement(new RemotePeerInfo(tokens[0], "localhost", Integer.toString(8000 + i++), hasFile));
             }
 
             in.close();
