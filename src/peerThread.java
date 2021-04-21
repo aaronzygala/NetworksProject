@@ -204,7 +204,8 @@ public class peerThread extends Thread {
                 storePiece(pieceData, pieceIndex);
 
                 byteIndex = pieceIndex / 8;
-                otherBitfield[byteIndex] |= (int)Math.pow(2, (pieceIndex % 8));
+                myBitfield[byteIndex] |= (int)Math.pow(2, (pieceIndex % 8));
+                checkDone();
 
                 // send have to others
 
@@ -227,6 +228,15 @@ public class peerThread extends Thread {
         byte[] message = messageString.getBytes();
         outputData.write(message);
         outputData.flush();
+    }
+
+    void checkDone() throws IOException {
+        for(int i = 0; i < myBitfield.length; i++)
+        {
+            if((myBitfield[i] ^ 0) != 0)
+                return;
+        }
+        server.setDone(String.valueOf(server.peerID));
     }
 
     private void interested(int peerID) {

@@ -4,15 +4,12 @@ import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.Arrays;
-import java.util.Dictionary;
+import java.util.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.Vector;
 import java.io.*;
 import java.util.Arrays;
 import java.util.Dictionary;
-import java.util.Random;
 import java.util.Vector;
 import java.util.concurrent.TimeUnit;
 
@@ -22,7 +19,7 @@ class Peer {
     public int peerID;
     private log logger;
     private byte[] myBitfield;
-    private Dictionary<Integer, Boolean> interestList;
+    private HashMap<String, Boolean> peerMap;
     public Vector<RemotePeerInfo> peerInfoVector;
     private ServerSocket serverListener;
     private String pAddress;
@@ -48,6 +45,13 @@ class Peer {
         client = new Client();
         //server = new Server(pAddress, pPort);
         logger = new log(peerID);
+
+        for (RemotePeerInfo p : peerInfoVector) {
+            if(p.hasFile)
+                peerMap.put(p.peerId, true);
+            else
+                peerMap.put(p.peerId, false);
+        }
     }
 
     public void setCommonData() {
@@ -115,20 +119,34 @@ class Peer {
                 peerThread.start();
             }
         }
+
         //Thread to perform choking algorithm;
         //ChokeThread chokeThread = new ChokeThread();
         //chokeThread.start();
 
         //if (!downloadedFile)
-        {
+        //{
             //waitForBitField();
             //downloadedFile = true;
             //logger.fullyDownloaded();
-        }
+        //}
 
         //waitForNeighborBitField();
-        serverListener.close();
 
+        while(true) {
+            boolean allDone = false;
+            for(boolean hasFile : peerMap.values()) {
+                if(!hasFile) {
+                    allDone = false;
+                    break;
+                }
+                allDone = true;
+            }
+            if(allDone)
+                break;
+        }
+
+        serverListener.close();
     }
 
     private Socket connect(RemotePeerInfo target)
@@ -165,5 +183,9 @@ class Peer {
             }
         }
         return returnValue;
+    }
+
+    public void setDone(String peerID) {
+        peerMap.put(peerID, true);
     }
 }

@@ -14,7 +14,13 @@ public class peerProcess {
 
                 String[] tokens = st.split("\\s+");
 
-                peerInfoVector.addElement(new RemotePeerInfo(tokens[0], tokens[1], tokens[2]));
+                boolean hasFile;
+                if(tokens[3] == "1")
+                    hasFile = true;
+                else
+                    hasFile = false;
+
+                peerInfoVector.addElement(new RemotePeerInfo(tokens[0], tokens[1], tokens[2], hasFile));
             }
 
             in.close();

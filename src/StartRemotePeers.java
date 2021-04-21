@@ -40,7 +40,12 @@ public class StartRemotePeers {
                 //}
                 //System.out.println("tokens end ----");
 
-                peerInfoVector.addElement(new RemotePeerInfo(tokens[0], tokens[1], tokens[2]));
+                boolean hasFile;
+                if(tokens[3] == "1")
+                    hasFile = true;
+                else
+                    hasFile = false;
+                peerInfoVector.addElement(new RemotePeerInfo(tokens[0], tokens[1], tokens[2], hasFile));
 
             }
 
@@ -57,7 +62,7 @@ public class StartRemotePeers {
      * @param args
      */
     public static void main(String[] args) {
-        String ciseUser = "azygala"; // change with your CISE username
+        String ciseUser = "antoljak"; // change with your CISE username
         // TODO Auto-generated method stub
         try {
             StartRemotePeers myStart = new StartRemotePeers();
@@ -76,7 +81,7 @@ public class StartRemotePeers {
                      * without a password. Or you can use the corressponding method
                      * of JSch which accepts a password.
                      */
-                    jsch.addIdentity("C:\\Users\\Aaron\\.ssh\\id_rsa", "");
+                    jsch.addIdentity("C:\\Users\\lukaa\\.ssh\\id_rsa", "");
                     Session session = jsch.getSession(ciseUser, remotePeer.getPeerAddress(), 22);
                     Properties config = new Properties();
                     config.put("StrictHostKeyChecking", "no");
