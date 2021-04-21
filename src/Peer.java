@@ -53,10 +53,7 @@ class Peer {
 
         peerMap = new HashMap<>(count);
         for (RemotePeerInfo p : peerInfoVector) {
-            if(p.hasFile)
-                peerMap.put(p.peerId, true);
-            else
-                peerMap.put(p.peerId, false);
+            peerMap.put(p.peerId, p.hasFile);
         }
     }
 
@@ -126,19 +123,6 @@ class Peer {
             }
         }
 
-        //Thread to perform choking algorithm;
-        //ChokeThread chokeThread = new ChokeThread();
-        //chokeThread.start();
-
-        //if (!downloadedFile)
-        //{
-            //waitForBitField();
-            //downloadedFile = true;
-            //logger.fullyDownloaded();
-        //}
-
-        //waitForNeighborBitField();
-
         while(true) {
             boolean allDone = false;
             for(boolean hasFile : peerMap.values()) {
@@ -157,34 +141,26 @@ class Peer {
 
     private Socket connect(RemotePeerInfo target)
     {
-        try
-        {
-            // make connection to target
+        try {
             Socket socket = new Socket(target.getPeerAddress(), Integer.parseInt(target.getPeerPort()));
             System.out.println("Connected to " + target.getPeerId() + " in port " + target.getPeerPort());
-
             return socket;
         }
-        catch (ConnectException e)
-        {
-            System.err.println("Cannot connect! Connection exception.");
+        catch (ConnectException e) {
+            System.out.println("Cannot connect! Connection exception.");
         }
-        catch(UnknownHostException unknownHost)
-        {
-            System.err.println("Cannot connect! Host is unknown.");
+        catch(UnknownHostException unknownHost) {
+            System.out.println("Cannot connect! Host is unknown.");
         }
-        catch(IOException ioException)
-        {
-            ioException.printStackTrace();
+        catch(IOException e) {
+            e.printStackTrace();
         }
-
         return null;
     }
     public static RemotePeerInfo getPeerInfoByID(Vector<RemotePeerInfo> peerVector, int peerId){
         RemotePeerInfo returnValue = null;
         for (RemotePeerInfo p: peerVector) {
-            if (Integer.parseInt(p.getPeerId()) == peerId)
-            {
+            if (Integer.parseInt(p.getPeerId()) == peerId) {
                 returnValue = p;
             }
         }

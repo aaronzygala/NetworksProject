@@ -1,14 +1,13 @@
 import java.io.*;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Random;
 
 public class peerThread extends Thread {
     private final Peer server;
-    private RemotePeerInfo target;
-    private Socket socket;
-    private boolean initiator;
+    private RemotePeerInfo client;
+    private Socket connection;
+    private boolean isServer;
     private boolean isChoked;
     private  peerHandler pH;
     private byte[] myBitfield;
@@ -18,26 +17,24 @@ public class peerThread extends Thread {
     private final ObjectOutputStream outputData;
     private final ObjectInputStream inputData;
 
-    peerThread(Peer server, RemotePeerInfo target, Socket connectionSocket, boolean initiator, byte[] clientBitfield) throws IOException {
-        this.target = target;
+    peerThread(Peer server, RemotePeerInfo client, Socket connectionSocket, boolean isServer, byte[] clientBitfield) throws IOException {
+        this.client = client;
         this.server = server;
-        this.socket = connectionSocket;
-        this.initiator = initiator;
+        this.connection = connectionSocket;
+        this.isServer = isServer;
         this.myBitfield = clientBitfield;
 
-        outputData = new ObjectOutputStream(socket.getOutputStream());
-        inputData = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+        outputData = new ObjectOutputStream(connection.getOutputStream());
+        inputData = new ObjectInputStream(new BufferedInputStream(connection.getInputStream()));
     }
 
     @Override
     public void run() {
         try {
-            // handshake message
-            System.out.println("***beginning peer thread ****");
 
-            int success = handshake();
-            if (success < 0) {
-                socket.close();
+            int connected = handshake();
+            if (connected == 0) {
+                connection.close();
                 return;
             }
 
@@ -47,15 +44,13 @@ public class peerThread extends Thread {
                 byte[] message = new byte[length];
                 inputData.readFully(message);
                 decodeMessage(message);
-
-                //READ INCOMING DATA, SEND CORRESPONDING MESSAGE
             }
 
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
-                socket.close();
+                connection.close();
             } catch (IOException e1) {
                 e1.printStackTrace();
                 System.out.println("Error! Cannot close socket");
@@ -65,26 +60,26 @@ public class peerThread extends Thread {
 
     private int handshake() throws IOException {
 
-        if (initiator) {
+        if (isServer) {
             sendHandShake();
-            int targetId = receiveHandshakeInitiator();
+            int targetId = receiveHandShakeServer();
 
-            if (targetId < 0) {
-                socket.close();
-                return -1;
+            if (targetId == -1) {
+                connection.close();
+                return 0;
             }
         } else {
-            int targetId = receiveHandshake();
-            if (targetId < 0) {
-                socket.close();
-                return -1;
+            int targetId = receiveHandShake();
+            if (targetId == -1) {
+                connection.close();
+                return 0;
             }
             //set the target
-            target = Peer.getPeerInfoByID(server.peerInfoVector, targetId);
+            client = Peer.getPeerInfoByID(server.peerInfoVector, targetId);
             sendHandShake();
         }
 
-        return 0;
+        return 1;
     }
 
     private void sendHandShake() {
@@ -99,25 +94,25 @@ public class peerThread extends Thread {
         }
     }
 
-    private int receiveHandshake() throws IOException {
+    private int receiveHandShake() throws IOException {
         System.out.println(" **** ENTERING RCV HANDSHAKE NON INITIATOR " + server.peerID + " ****");
 
         byte[] message = new byte[32];
-        System.out.println("MESSAGE: " + new String(message));
-
         inputData.readFully(message);
+
+        System.out.println("MESSAGE: " + new String(message));
         return verifyHandshake(message);
 
     }
 
-    private int receiveHandshakeInitiator() throws IOException {
+    private int receiveHandShakeServer() throws IOException {
         byte[] message = new byte[32];
-        inputData.readFully(message, 0, 32);
+        inputData.readFully(message);
         String stringMessage = new String(message);
-        System.out.println("TARGET: " + target.getPeerId() + " MESSAGE: " + stringMessage + " END");
+        System.out.println("TARGET: " + client.getPeerId() + " MESSAGE: " + stringMessage + " END");
 
         int peerID = Integer.parseInt(stringMessage.substring(28, 32));
-        if (verifyHandshake(message) == -1 || peerID != Integer.parseInt(target.getPeerId()))
+        if (verifyHandshake(message) == -1 || peerID != Integer.parseInt(client.getPeerId()))
             return -1;
         return peerID;
     }
@@ -150,19 +145,19 @@ public class peerThread extends Thread {
                 //logger.UnchokedNeighbor(peerID1, peerID2);
                 break;
             case 2 : // interested - should be done
-                interested(Integer.parseInt(target.peerId));
+                interested(Integer.parseInt(client.peerId));
                 //logger.interestedMessage(peerID1, peerID2);
                 break;
             case 3 : // not interested - should be done
-                notInterested(Integer.parseInt(target.peerId));
+                notInterested(Integer.parseInt(client.peerId));
                 //logger.NotInterestedMessage(peerID1, peerID2);
                 break;
             case 4 : // have - should be done
                 int index = Integer.parseInt(Arrays.toString(message).substring(5,9));
                 byteIndex = index / 8;
                 otherBitfield[byteIndex] |= (int)Math.pow(2, (index % 8));
-                verifyBitfield(Integer.parseInt(target.peerId), otherBitfield);
-                if(!pH.interestedNeighbors.get(target.peerId)) {
+                verifyBitfield(Integer.parseInt(client.peerId), otherBitfield);
+                if(!pH.interestedNeighbors.get(client.peerId)) {
                     String messageString = String.valueOf(1) + String.valueOf(2); // interested
                     byte[] newMessage = messageString.getBytes();
                     outputData.write(newMessage);
@@ -172,8 +167,8 @@ public class peerThread extends Thread {
                 break;
             case 5 : // bitfield - should be done
                 otherBitfield = (Arrays.toString(message).substring(5,message.length)).getBytes();
-                verifyBitfield(Integer.parseInt(target.peerId), otherBitfield);
-                if(!pH.interestedNeighbors.get(target.peerId)) {
+                verifyBitfield(Integer.parseInt(client.peerId), otherBitfield);
+                if(!pH.interestedNeighbors.get(client.peerId)) {
                     String messageString = String.valueOf(1) + String.valueOf(2); // interested
                     byte[] newMessage = messageString.getBytes();
                     outputData.write(newMessage);
