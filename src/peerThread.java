@@ -293,7 +293,7 @@ public class peerThread extends Thread {
         }
     }
 
-    public void storePiece(byte[] piece, int index) {
+    public void setPiece(byte[] piece, int index) {
         try {
             int pieceSize = Integer.parseInt(Peer.getCommonData().elementAt(5).toString());
             int pieceStart = pieceSize * index;
