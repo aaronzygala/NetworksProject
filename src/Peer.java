@@ -7,11 +7,7 @@ import java.net.UnknownHostException;
 import java.util.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.*;
-import java.util.Arrays;
-import java.util.Dictionary;
 import java.util.Vector;
-import java.util.concurrent.TimeUnit;
 
 class Peer {
     private Client client;
@@ -94,13 +90,9 @@ class Peer {
         (new Thread() {
             public void run() {
                 try {
-                    System.out.println("Waiting for clients at " + port);
-
                     while (true)
                     {
                         Socket connectionSocket = serverListener.accept();
-                        System.out.println("new connection");
-
                         peerThread pThread = new peerThread(p, null, connectionSocket, false, p.myBitfield);
                         new Thread(pThread).start();
                     }
@@ -117,7 +109,7 @@ class Peer {
                 Thread.sleep(2000);
             }
             if(this.peerID != i){
-                System.out.println("PEER : " + this.peerID + " IN PEER LOOP ATTEMPTING CONNECTION WITH " + i);
+                System.out.println("Peer : " + this.peerID + " Attempting to Connect to Peer " + i);
                 RemotePeerInfo targetPeer = getPeerInfoByID(peerInfoVector, i);
 
                 Socket connectionSocket = connect(targetPeer);

@@ -19,8 +19,8 @@ public class peerThread extends Thread {
     private Vector<Peer> preferredNeighbors;
     private int pieceNum;
 
-    private final ObjectOutputStream outputData;
-    private final ObjectInputStream inputData;
+    private final DataOutputStream outputData;
+    private final DataInputStream inputData;
 
     peerThread(Peer server, RemotePeerInfo client, Socket connectionSocket, boolean isServer, byte[] clientBitfield) throws IOException {
         this.client = client;
@@ -31,8 +31,8 @@ public class peerThread extends Thread {
         preferredNeighbors = new Vector<>(Integer.parseInt((Peer.getCommonData().elementAt(0)).toString()));
         pieceNum = 0;
 
-        outputData = new ObjectOutputStream(connection.getOutputStream());
-        inputData = new ObjectInputStream(new BufferedInputStream(connection.getInputStream()));
+        outputData = new DataOutputStream(connection.getOutputStream());
+        inputData = new DataInputStream(new BufferedInputStream(connection.getInputStream()));
     }
 
     @Override
@@ -63,9 +63,8 @@ public class peerThread extends Thread {
         } finally {
             try {
                 connection.close();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-                System.out.println("Error! Cannot close socket");
+            } catch (IOException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -96,9 +95,7 @@ public class peerThread extends Thread {
 
     private void sendHandShake() {
         try {
-            System.out.println(" **** ENTERING SEND HANDSHAKE ****");
-            String messageOut = "P2PFILESHARINGPROJ" + "0000000000" + String.valueOf(server.peerID);
-            System.out.println("MESSAGE: " + messageOut);
+            String messageOut = "P2PFILESHARINGPROJ" + "0000000000" + server.peerID;
             outputData.write(messageOut.getBytes(), 0, 32);
             outputData.flush();
         } catch (IOException e) {
@@ -107,26 +104,27 @@ public class peerThread extends Thread {
     }
 
     private int receiveHandShake() throws IOException {
-        System.out.println(" **** ENTERING RCV HANDSHAKE NON INITIATOR " + server.peerID + " ****");
 
         byte[] message = new byte[32];
         inputData.readFully(message);
-
-        System.out.println("MESSAGE: " + new String(message));
         return verifyHandshake(message);
 
     }
 
     private int receiveHandShakeServer() throws IOException {
-        byte[] message = new byte[32];
-        inputData.readFully(message);
-        String stringMessage = new String(message);
-        System.out.println("TARGET: " + client.getPeerId() + " MESSAGE: " + stringMessage + " END");
-
-        int peerID = Integer.parseInt(stringMessage.substring(28, 32));
-        if (verifyHandshake(message) == -1 || peerID != Integer.parseInt(client.getPeerId()))
-            return -1;
-        return peerID;
+        try{
+            byte[] message = new byte[32];
+            inputData.readFully(message);
+            String stringMessage = new String(message);
+            int peerID = Integer.parseInt(stringMessage.substring(28, 32));
+            if (verifyHandshake(message) == -1 || peerID != Integer.parseInt(client.getPeerId()))
+                return -1;
+            return peerID;
+        }
+        catch(EOFException e){
+            System.err.println("EOF Exception!");
+        }
+        return -1;
     }
 
     public int verifyHandshake(byte[] handshake) {
