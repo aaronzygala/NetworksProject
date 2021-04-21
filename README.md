@@ -5,6 +5,7 @@ Group members: Luka Antoljak, Ori Leibovici, Aaron Zygala
 What has been done:
 
 Fran Luka Antoljak:
+
 	Logging functionality,
 
 	Message functionality:
@@ -32,7 +33,8 @@ Fran Luka Antoljak:
 
 	Wait loop for peers who have fully downloaded.
 
-Aaron Zygala
+Aaron Zygala:
+
 	Handshake functionality,
 	
 	Organization and creation of threads,
