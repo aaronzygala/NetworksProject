@@ -1,14 +1,15 @@
 import java.util.*;
 
 public class peerHandler {
-    public  Map<Integer, Client> peerMap;
-    private List<Client> preferredNeighbors;
+    public  Map<Integer, Peer> peerMap;
+    private List<Peer> preferredNeighbors;
     public Dictionary<Integer, Boolean> interestedNeighbors;
-    private Client optimisticallyUnchokedNeighbor;
+    private Peer optimisticallyUnchokedNeighbor;
     boolean hasFile;
+    private log logger;
     Random random = new Random();
 
-    public synchronized void selectPreferredNeighbors(int NumberOfPreferredNeighbors) throws InterruptedException {
+    public synchronized void selectPreferredNeighbors(int NumberOfPreferredNeighbors, int myID) throws InterruptedException {
         long timer = Integer.parseInt(Peer.getCommonData().elementAt(1).toString()) * 1000;
 
         new Thread() {
@@ -19,9 +20,9 @@ public class peerHandler {
                     for(int i = 0; i < NumberOfPreferredNeighbors; i++) {
                         
                         if(!hasFile) {
-                            Client fastestDLRate = peerMap.get(0);
+                            Peer fastestDLRate = peerMap.get(0);
 
-                            for(Map.Entry<Integer, Client> peer : peerMap.entrySet()) {
+                            for(Map.Entry<Integer, Peer> peer : peerMap.entrySet()) {
                                 if(peer.getValue().getDownloadRate() == fastestDLRate.getDownloadRate()
                                 && !preferredNeighbors.contains(peer.getValue())
                                 && interestedNeighbors.get(peer.getValue())) {
@@ -43,12 +44,14 @@ public class peerHandler {
                         }
                     }
 
-                    for(Map.Entry<Integer, Client> peer : peerMap.entrySet()) {
+                    for(Map.Entry<Integer, Peer> peer : peerMap.entrySet()) {
                         if(preferredNeighbors.contains(peer)) // && peer.choked == true
                             continue; // unchoke(peer)
                         else if(!preferredNeighbors.contains(peer)) // && peer.choked == false
                             continue; // choke(peer)
                     }
+
+                    logger.ChangedPreferredNeighbors(myID, preferredNeighbors);
                 } catch(Exception e) {
                     System.out.println(e);
                 }
@@ -57,7 +60,7 @@ public class peerHandler {
         Thread.sleep(timer);
     }
 
-    public synchronized void optimisticallySelectNeighbor() throws InterruptedException {
+    public synchronized void optimisticallySelectNeighbor(int myID) throws InterruptedException {
         long timer = Integer.parseInt(Peer.getCommonData().elementAt(2).toString()) * 1000;
 
         new Thread() {
@@ -67,7 +70,8 @@ public class peerHandler {
                     // while(peerMap.get(index).choked == false)
                         index = random.nextInt(peerMap.size());
                     // peerMap.get(index).unchoke();
-                    optimisticallyUnchokedNeighbor = peerMap.get(index);  
+                    optimisticallyUnchokedNeighbor = peerMap.get(index);
+                    logger.OptimisicUnchoke(myID, peerMap.get(index).peerID);
                 } catch(Exception e) {
                     System.out.println(e);
                 }

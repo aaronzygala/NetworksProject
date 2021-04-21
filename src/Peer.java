@@ -24,6 +24,7 @@ class Peer {
     private ServerSocket serverListener;
     private String pAddress;
     private int pPort;
+    private int downloadRate;
 
     // vector to hold data from Common.cfg
     /*
@@ -81,6 +82,10 @@ class Peer {
         return commonData;
     }
 
+    public HashMap<String, Boolean> getPeerMap() { return peerMap; }
+
+    public int getDownloadRate() {return downloadRate;}
+
     public void start() throws IOException, InterruptedException {
         RemotePeerInfo info = getPeerInfoByID(this.peerInfoVector, this.peerID);
         int port = Integer.parseInt(info.getPeerPort());
@@ -119,6 +124,7 @@ class Peer {
                 if (connectionSocket == null) continue;
 
                 peerThread peerThread = new peerThread(this, targetPeer, connectionSocket, true, myBitfield);
+                logger.ConnectionMade(this.peerID, Integer.parseInt(targetPeer.peerId));
                 peerThread.start();
             }
         }
