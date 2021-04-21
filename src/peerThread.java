@@ -15,8 +15,8 @@ public class peerThread extends Thread {
     private byte[] otherBitfield;
     Random random = new Random();
 
-    private final DataOutputStream outputData;
-    private final DataInputStream inputData;
+    private final ObjectOutputStream outputData;
+    private final ObjectInputStream inputData;
 
     peerThread(Peer server, RemotePeerInfo target, Socket connectionSocket, boolean initiator, byte[] clientBitfield) throws IOException {
         this.target = target;
@@ -25,8 +25,8 @@ public class peerThread extends Thread {
         this.initiator = initiator;
         this.myBitfield = clientBitfield;
 
-        outputData = new DataOutputStream(socket.getOutputStream());
-        inputData = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+        outputData = new ObjectOutputStream(socket.getOutputStream());
+        inputData = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
     }
 
     @Override
@@ -92,7 +92,7 @@ public class peerThread extends Thread {
             System.out.println(" **** ENTERING SEND HANDSHAKE ****");
             String messageOut = "P2PFILESHARINGPROJ" + "0000000000" + String.valueOf(server.peerID);
             System.out.println("MESSAGE: " + messageOut);
-            outputData.write(messageOut.getBytes());
+            outputData.write(messageOut.getBytes(), 0, 32);
             outputData.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -112,9 +112,9 @@ public class peerThread extends Thread {
 
     private int receiveHandshakeInitiator() throws IOException {
         byte[] message = new byte[32];
-        inputData.readFully(message);
+        inputData.readFully(message, 0, 32);
         String stringMessage = new String(message);
-        System.out.println("TARGET: " + target.getPeerId() + " MESSAGE: " + stringMessage.substring(28, 32) + " END");
+        System.out.println("TARGET: " + target.getPeerId() + " MESSAGE: " + stringMessage + " END");
 
         int peerID = Integer.parseInt(stringMessage.substring(28, 32));
         if (verifyHandshake(message) == -1 || peerID != Integer.parseInt(target.getPeerId()))
@@ -220,8 +220,8 @@ public class peerThread extends Thread {
     void request() throws IOException {
         int nextPieceIndex = randRequestPiece(myBitfield, otherBitfield);
         String messageString;
-        if(nextPieceIndex == -1)    // Interested msg
-            messageString = String.valueOf(1) + String.valueOf(2);
+        if(nextPieceIndex == -1)    // Not-interested msg
+            messageString = String.valueOf(1) + String.valueOf(3);
         else    // Request msg
             messageString = String.valueOf(5) + String.valueOf(6) + String.valueOf(nextPieceIndex);
         byte[] message = messageString.getBytes();
