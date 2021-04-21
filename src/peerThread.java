@@ -16,7 +16,7 @@ public class peerThread extends Thread {
     private byte[] otherBitfield;
     private log logger;
     Random random = new Random();
-    private Vector<Client> preferredNeighbors;
+    private Vector<Peer> preferredNeighbors;
     private int pieceNum;
 
     private final ObjectOutputStream outputData;
@@ -28,7 +28,7 @@ public class peerThread extends Thread {
         this.connection = connectionSocket;
         this.isServer = isServer;
         this.myBitfield = clientBitfield;
-        preferredNeighbors = new Vector<>((int)(Peer.getCommonData().elementAt(0)));
+        preferredNeighbors = new Vector<>(Integer.parseInt((Peer.getCommonData().elementAt(0)).toString()));
         pieceNum = 0;
 
         outputData = new ObjectOutputStream(connection.getOutputStream());
