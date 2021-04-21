@@ -1,6 +1,7 @@
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
@@ -23,7 +24,7 @@ class Peer {
     private byte[] myBitfield;
     private Dictionary<Integer, Boolean> interestList;
     public Vector<RemotePeerInfo> peerInfoVector;
-
+    private ServerSocket serverListener;
     private String pAddress;
     private int pPort;
 
@@ -41,8 +42,6 @@ class Peer {
     private static Vector commonData;
 
     Peer(int peerID, Vector<RemotePeerInfo> peerInfoVector){
-        this.pAddress = pAddress;
-        this.pPort = pPort;
         this.peerID = peerID;
         this.peerInfoVector = peerInfoVector;
 
@@ -76,8 +75,35 @@ class Peer {
     }
 
     public void start() throws IOException, InterruptedException {
-        System.out.println("BEGINNING PEER LOOP");
+        RemotePeerInfo info = getPeerInfoByID(this.peerInfoVector, this.peerID);
+        int port = Integer.parseInt(info.getPeerPort());
+        Peer p = this;
+        serverListener = new ServerSocket(port);
+        (new Thread() {
+            public void run() {
+                try {
+                    System.out.println("Waiting for clients at " + port);
+
+                    while (true)
+                    {
+                        Socket connectionSocket = serverListener.accept();
+                        System.out.println("new connection");
+
+                        peerThread pThread = new peerThread(p, null, connectionSocket, false, p.myBitfield);
+                        new Thread(pThread).start();
+                    }
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+
         for (int i = this.peerID; i >= 1001; i--) {
+            if(this.peerID == 1001){
+                Thread.sleep(2000);
+            }
             if(this.peerID != i){
                 System.out.println("PEER : " + this.peerID + " IN PEER LOOP ATTEMPTING CONNECTION WITH " + i);
                 RemotePeerInfo targetPeer = getPeerInfoByID(peerInfoVector, i);
@@ -101,6 +127,8 @@ class Peer {
         }
 
         //waitForNeighborBitField();
+        serverListener.close();
+
     }
 
     private Socket connect(RemotePeerInfo target)
