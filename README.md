@@ -35,13 +35,19 @@ Fran Luka Antoljak:
 
 Aaron Zygala:
 
-	Handshake functionality,
-	
-	Organization and creation of threads,
-	
-	StartRemotePeers,
-	
-	Peer and peerThread class
+	Generation and organization of threads/multithreading,
+
+	Sending and Receiving Handshake messages,
+
+	Creation of Peer Threads and Server Listener Threads,
+
+	Rewriting StartRemotePeers and getting remote machines to work with Java,
+
+	Writing peerThread and Peer classes,
+
+	Calling peerProcess to generate peerThreads,
+
+	Organized socket connections between peers
 	
 Ori Leibovici:
 
