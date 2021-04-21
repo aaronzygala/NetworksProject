@@ -35,20 +35,26 @@ Fran Luka Antoljak:
 
 Aaron Zygala:
 
-	Generation and organization of threads/multithreading,
+	Handshake functionality,
 	
-	Sending and Receiving Handshake messages,
+	Organization and creation of threads,
 	
-	Creation of Peer Threads and Server Listener Threads,
+	StartRemotePeers,
 	
-	Rewriting StartRemotePeers and getting remote machines to work with Java,
+	Peer and peerThread class
 	
-	Writing peerThread and Peer classes,
+Ori Leibovici:
+
+	Created and built setup to test on local machine,
 	
-	Calling peerProcess to generate peerThreads,
+	Built first iteration of peer connection code: client and server model,
 	
-	Organized socket connections between peers
+	Created peer class attributes and functions,
 	
+	Created main function for peer and other functionality,
 	
+	Contributed to groups conceptual understanding of project,
+	
+	Added functionality and logic throughout the project
 	
 	
