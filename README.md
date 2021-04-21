@@ -4,29 +4,39 @@ Group members: Luka Antoljak, Ori Leibovici, Aaron Zygala
 
 What has been done:
 
-Logging functionality,
+Fran Luka Antoljak:
+	Logging functionality,
 
-Message functionality:
-	Choke,
-	Unchoke,
-	Interested,
-	Not Interested,
-	Have,
-	Bitfield,
-	Request,
-	Piece,
-Sequential Requesting,
+	Message functionality:
+		Choke,
+		Unchoke,
+		Interested,
+		Not Interested,
+		Have,
+		Bitfield,
+		Request,
+		Piece,
+	Sequential requesting,
 
-Finish downloading check,
+	Finish downloading check,
 
-Getting/Setting Piece,
+	Getting/Setting piece,
 
-Random Piece Requesting,
+	Random piece requesting,
 
-Verifying Handshake,
+	Verifying handshake,
 
-Selecting Preferred Neighbors,
+	Selecting preferred neighbors,
 
-Optimistically Unchoking,
+	Optimistically unchoking,
 
-Wait Loop for Peers who have fully downloaded.
+	Wait loop for peers who have fully downloaded.
+
+Aaron Zygala
+	Handshake functionality,
+	
+	Organization and creation of threads,
+	
+	StartRemotePeers,
+	
+	Peer and peerThread class
