@@ -46,6 +46,12 @@ class Peer {
         //server = new Server(pAddress, pPort);
         logger = new log(peerID);
 
+        int count = 0;
+        for (RemotePeerInfo p : peerInfoVector) {
+            count++;
+        }
+
+        peerMap = new HashMap<>(count);
         for (RemotePeerInfo p : peerInfoVector) {
             if(p.hasFile)
                 peerMap.put(p.peerId, true);
